@@ -5,7 +5,7 @@ import heapq
 
 
 # functions
-def update_field(field,current_pos,walls):
+def update_field(field,current_pos,walls,moves,enemies):
     ''' Updateds the game field:
         1 : visisted field
         2 : walls
@@ -21,6 +21,20 @@ def update_field(field,current_pos,walls):
         elif wall == 'C':
             field[current_pos[0]][current_pos[1]-1] = 2
 
+    for move in moves:
+        if move == 'A':
+            field[(current_pos[0]+1)%X][current_pos[1]] = 1
+        elif move == 'E':
+            field[(current_pos[0]-1)%X][current_pos[1]] = 1
+        elif move == 'D':
+            field[current_pos[0]][(current_pos[1]+1)%Y] = 1
+        elif move == 'C':
+            field[current_pos[0]][(current_pos[1]-1)%Y] = 1
+            
+    for enemy in enemies:
+        field[enemy[0]][enemy[1]] = 1
+            
+            
 def check_enemies(coords,moves):
     coords_me = coords[-1]
     coords_en = coords[:-1]
@@ -56,7 +70,7 @@ arr_go = ['C','A','D','E','B']
 ind = 0
 oppose_mv = ''
 
-
+iter = 1
 # game loop
 while True:
     # next lines mark where the walls are in this order: CADE
@@ -75,7 +89,8 @@ while True:
     moves = [arr_go[n] for n, elem in enumerate(walls) if elem == '_']
     no_go = [arr_go[n] for n, elem in enumerate(walls) if elem == '#']
 
-    update_field(field,coords_me,no_go)
+    update_field(field,coords_me,no_go,moves,coords[:-1])
+    #if iter > 300:
     #print >> sys.stderr, field
 
     # possible move: if you have more than one option,
@@ -88,9 +103,10 @@ while True:
             if enemy in moves:
                 moves.remove(enemy)
 
-    if len(moves) > 1:
+    preferred_moves = moves
+    if len(preferred_moves) > 1:
         try:
-            moves.remove(oppose_mv)
+            preferred_moves.remove(oppose_mv)
         except:
             pass
         
@@ -98,16 +114,18 @@ while True:
         # do nothing if you're traped
         next_mv = arr_go[-1]
         oppose_mv = ''
-    else:
+    elif len(preferred_moves) == 0:
         # choose next move randomly from the remaining options
         ind = randint(0,len(moves)-1)
         next_mv = moves[ind]
         # re-calculate the opposite direction
         oppose_mv = arr_go[(arr_go.index(next_mv)+2) % 4]
-
+    else:
+        # choose next move randomly from the remaining options
+        ind = randint(0,len(preferred_moves)-1)
+        next_mv = preferred_moves[ind]
+        # re-calculate the opposite direction
+        oppose_mv = arr_go[(arr_go.index(next_mv)+2) % 4]
+    
+    iter += 1
     print next_mv
-
-
-
-
-
